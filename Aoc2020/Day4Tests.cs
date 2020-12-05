@@ -102,6 +102,53 @@ namespace Aoc2020
 
             Assert.That(validCount, Is.EqualTo(200));
         }
+
+        [Test]
+        public void Part2_Examples()
+        {
+            var rule = Passport.ContentValidators.Single(x => x.FieldName == "byr");
+            Assert.That(rule.Validate("2002"), Is.True);
+            Assert.That(rule.Validate("2003"), Is.False);
+
+            var rule2 = Passport.ContentValidators.Single(x => x.FieldName == "iyr");
+            Assert.That(rule2.Validate("2015"), Is.True);
+            Assert.That(rule2.Validate("2025"), Is.False);
+
+            var rule3 = Passport.ContentValidators.Single(x => x.FieldName == "eyr");
+            Assert.That(rule3.Validate("2025"), Is.True);
+            Assert.That(rule3.Validate("2035"), Is.False);
+
+            var rule4 = Passport.ContentValidators.Single(x => x.FieldName == "hgt");
+            Assert.That(rule4.Validate("60in"), Is.True);
+            Assert.That(rule4.Validate("190cm"), Is.True);
+            Assert.That(rule4.Validate("190in"), Is.False);
+            Assert.That(rule4.Validate("190"), Is.False);
+
+            var rule5 = Passport.ContentValidators.Single(x => x.FieldName == "hcl");
+            Assert.That(rule5.Validate("#123abc"), Is.True);
+            Assert.That(rule5.Validate("#123abz"), Is.False);
+            Assert.That(rule5.Validate("123abc"), Is.False);
+
+            var rule6 = Passport.ContentValidators.Single(x => x.FieldName == "ecl");
+            Assert.That(rule6.Validate("blah"), Is.False);
+            Assert.That(rule6.Validate("amb"), Is.True);
+
+            var rule7 = Passport.ContentValidators.Single(x => x.FieldName == "pid");
+            Assert.That(rule7.Validate("000000001"), Is.True);
+            Assert.That(rule7.Validate("0123456789"), Is.False);
+        }
+
+        [Test]
+        public void Part2()
+        {
+            var input = File.ReadAllText("Day4.txt");
+            var passports = Passport.FromFile(input, Passport.ContentValidators);
+
+            var validCount = passports.Count(p => p.IsValid);
+
+            Assert.That(validCount, Is.EqualTo(116));
+        }
+
     }
 
     public class Passport
@@ -109,31 +156,21 @@ namespace Aoc2020
         public Dictionary<string, string> Fields { get; }
         private readonly List<Rule> _validators;
 
-        public Passport(IEnumerable<KeyValuePair<string, string>> pairs)
+        public Passport(IEnumerable<KeyValuePair<string, string>> pairs, IEnumerable<Rule> withValidators = null)
         {
             Fields = new Dictionary<string, string>(pairs);
-            _validators = new List<Rule>
-            {
-                new("byr", (t) => { return true; }),
-                new("iyr", (t) => { return true; }),
-                new("eyr", (t) => { return true; }),
-                new("hgt", (t) => { return true; }),
-                new("hcl", (t) => { return true; }),
-                new("ecl", (t) => { return true; }),
-                new("pid", (t) => { return true; }),
-                new("cid", (t) => { return true; }, true)
-            };
+            _validators = (withValidators ?? PresenceValidators).ToList();
         }
 
         public bool IsValid => _validators.All(v => v.Validate(Fields));
 
-        public static IEnumerable<Passport> FromFile(string passportFile)
+        public static IEnumerable<Passport> FromFile(string passportFile, IEnumerable<Rule> withValidators = null)
         {
             var passportsLines = passportFile.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
-            return passportsLines.Select(FromLine).ToList();
+            return passportsLines.Select(l => FromLine(l, withValidators)).ToList();
         }
 
-        public static Passport FromLine(string passportFields)
+        public static Passport FromLine(string passportFields, IEnumerable<Rule> withValidators = null)
         {
             var fieldsAndValues =
                 passportFields.Split(new[] {" ", "\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries);
@@ -141,26 +178,66 @@ namespace Aoc2020
             var dic = fieldsAndValues.Select(pair => pair.Split(':'))
                 .ToDictionary(parts => parts[0], parts => parts[1]);
 
-            return new Passport(dic);
+            return new Passport(dic, withValidators);
         }
+
+        public static IEnumerable<Rule> ContentValidators => new List<Rule>
+        {
+            new("byr", t => int.TryParse(t, out var value) && value >= 1920 && value <= 2002),
+            new("iyr", t => int.TryParse(t, out var value) && value >= 2010 && value <= 2020),
+            new("eyr", t => int.TryParse(t, out var value) && value >= 2020 && value <= 2030),
+            new("hgt", t =>
+            {
+                var regex = new Regex("^([0-9]+)(cm|in)$");
+                var matches = regex.Match(t);
+
+                int.TryParse(matches.Groups[1].Value, out var numeric);
+                var unit = matches.Groups[2].Value.ToLower();
+
+                return unit switch
+                {
+                    "cm" => numeric >= 150 && numeric <= 193,
+                    "in" => numeric >= 59 && numeric <= 76,
+                    _ => false
+                };
+            }),
+            new("hcl", t => new Regex("^#[0-9a-fA-F]{6,6}$").IsMatch(t)),
+            new("ecl", t =>
+            {
+                return new[] {"amb", "blu", "brn", "gry", "grn", "hzl", "oth"}.Contains(t);
+            }),
+            new("pid", t => new Regex("^[0-9]{9,9}$").IsMatch(t)),
+            new("cid", t => true, true)
+        };
+
+        public static IEnumerable<Rule> PresenceValidators => new List<Rule>
+        {
+            new("byr", t => true),
+            new("iyr", t => true),
+            new("eyr", t => true),
+            new("hgt", t => true),
+            new("hcl", t => true),
+            new("ecl", t => true),
+            new("pid", t => true),
+            new("cid", t => true, true)
+        };
     }
 
-    public class Rule
+    public record Rule
     {
-        public string FieldName { get; }
-        public Func<Dictionary<string, string>, bool> Validator { get; }
-        public bool Optional { get; }
+        public string FieldName { get; init; }
 
-        public Rule(string fieldName, Func<Dictionary<string, string>, bool> validator, bool optional = false)
-        {
-            FieldName = fieldName;
-            Validator = validator;
-            Optional = optional;
-        }
+        private readonly Func<string, bool> _validator;
+        private readonly bool _optional;
+
+        public Rule(string fieldName, Func<string, bool> validator, bool optional = false) 
+            => (FieldName, _validator, _optional) = (fieldName, validator, optional);
+
+        public bool Validate(string value) => _validator(value);
 
         public bool Validate(Dictionary<string, string> allFields)
         {
-            if (Optional && !allFields.ContainsKey(FieldName))
+            if (_optional && !allFields.ContainsKey(FieldName))
             {
                 return true;
             }
@@ -170,7 +247,8 @@ namespace Aoc2020
                 return false;
             }
 
-            return Validator(allFields);
+            var value = allFields[FieldName];
+            return Validate(value);
         }
     }
 }
