@@ -82,10 +82,11 @@ namespace Aoc2020
         private static Seat Solve(string boardPassCode)
         {
             var rowCodes = boardPassCode.Substring(0, boardPassCode.Length - 3);
-            var colCOdes = boardPassCode.Substring(boardPassCode.Length - 3);
+            var colCodes = boardPassCode.Substring(boardPassCode.Length - 3);
 
             var validRows = Enumerable.Range(0, 128).ToList();
-  
+            var validCols = Enumerable.Range(0, 8).ToList();
+
             foreach (var character in rowCodes)
             {
                 var halfRows = validRows.Count / 2;
@@ -97,12 +98,9 @@ namespace Aoc2020
                 };
             }
 
-            var validCols = Enumerable.Range(0, 8).ToList();
-
-            foreach (var character in colCOdes)
+            foreach (var character in colCodes)
             {
                 var halfCols = validCols.Count / 2;
-
                 validCols = character switch
                 {
                     'L' => validCols.Take(halfCols).ToList(),
@@ -111,7 +109,9 @@ namespace Aoc2020
                 };
             }
 
-            return new Seat(validRows.Single(), validCols.Single());
+            var row = validRows.Single();
+            var col = validCols.Single();
+            return new Seat(row, col);
         }
     }
 
