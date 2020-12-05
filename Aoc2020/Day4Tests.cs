@@ -37,8 +37,7 @@ namespace Aoc2020
         [Test]
         public void FromLine_PassportWithMultipleFieldsWithNewLineSplitter_Parses()
         {
-            string multipleValues;
-            multipleValues = "ecl:gry\npid:860033327";
+            var multipleValues = "ecl:gry\npid:860033327";
             var passport = Passport.FromLine(multipleValues);
             Assert.That(passport.Fields.Count, Is.EqualTo(2));
         }
