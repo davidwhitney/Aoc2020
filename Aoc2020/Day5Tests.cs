@@ -111,12 +111,9 @@ namespace Aoc2020
         }
     }
 
-    public record Seat
+    public record Seat(int Row, int Col)
     {
-        public int Row { get; init; }
-        public int Col { get; init; }
         public int SeatId => Row * 8 + Col;
-        public Seat(int row, int col) => (Row, Col) = (row, col);
     } 
 
 }
