@@ -15,8 +15,8 @@ namespace Aoc2020
             var result = Day6UserResponseParser.AnswersForGroups(data);
 
             Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result[0].DistinctYesAnswers.Count(), Is.EqualTo(3));
-            Assert.That(result[1].DistinctYesAnswers.Count(), Is.EqualTo(3));
+            Assert.That(result[0].DistinctYesAnswers.Count, Is.EqualTo(3));
+            Assert.That(result[1].DistinctYesAnswers.Count, Is.EqualTo(3));
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace Aoc2020
             var input = "abc\r\n\r\na\r\nb\r\nc\r\n\r\nab\r\nac\r\n\r\na\r\na\r\na\r\na\r\n\r\nb";
 
             var result = Day6UserResponseParser.AnswersForGroups(input);
-            var sum = result.Sum(x => x.DistinctYesAnswers.Count());
+            var sum = result.Sum(x => x.DistinctYesAnswers.Count);
 
             Assert.That(sum, Is.EqualTo(11));
         }
@@ -87,7 +87,7 @@ namespace Aoc2020
             var input = File.ReadAllText("Day6Input.txt");
 
             var result = Day6UserResponseParser.AnswersForGroups(input);
-            var part1 = result.Sum(x => x.DistinctYesAnswers.Count());
+            var part1 = result.Sum(x => x.DistinctYesAnswers.Count);
             var part2 = result.Sum(x => x.UnanimousYesAnswers.Count());
 
             Assert.That(part1, Is.EqualTo(6742));
