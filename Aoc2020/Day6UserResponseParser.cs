@@ -50,30 +50,8 @@ namespace Aoc2020
         {
             get
             {
-                var alpha = Enumerable.Range(0, 26)
-                    .Select(i => (char) (i + 97)).ToList();
-
-                var lettersEveryoneSaidYesTo = new List<char>();
-
-                foreach (var letter in alpha)
-                {
-                    var allLetters = new List<char>();
-                    foreach (var response in UserResponses)
-                    {
-                        allLetters.AddRange(response.YesAnswers);
-                    }
-
-                    var countOfLetter = allLetters.Count(x => x == letter);
-                    var everyoneSaidYes = countOfLetter == UserResponses.Count;
-
-                    if (everyoneSaidYes)
-                    {
-                        lettersEveryoneSaidYesTo.Add(letter);
-
-                    }
-                }
-
-                return lettersEveryoneSaidYesTo;
+                var alpha = new Range('a', 'z').AsChars();
+                return alpha.Where(letter => UserResponses.All(x => x.YesAnswers.Contains(letter)));
             }
         }
     }
@@ -87,8 +65,7 @@ namespace Aoc2020
 
         public Questionnaire()
         {
-            _values = Enumerable.Range(0, 26)
-                .Select(i => (char)(i + 97))
+            _values = new Range('a', 'z').AsChars()
                 .ToDictionary(c => c, c => false);
         }
 
@@ -101,5 +78,16 @@ namespace Aoc2020
         public bool For(char questionKey) => _values[questionKey];
 
         public IEnumerable<char> YesAnswers => _values.Where(kvp => kvp.Value).Select(x=>x.Key);
+    }
+
+    public static class RangeExtensions
+    {
+        public static IEnumerable<char> AsChars(this Range src)
+        {
+            for (var i = src.Start.Value; i <= src.End.Value; i++)
+            {
+                yield return (char)i;
+            }
+        }
     }
 }
