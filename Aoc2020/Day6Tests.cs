@@ -83,14 +83,16 @@ namespace Aoc2020
         }
 
         [Test]
-        public void Part1()
+        public void Parts()
         {
             var input = File.ReadAllText("Day6Input.txt");
 
             var result = Day6UserResponseParser.AnswersForGroups(input);
-            var sum = result.Sum(x => x.DistinctYesAnswers.Count());
+            var part1 = result.Sum(x => x.DistinctYesAnswers.Count());
+            var part2 = result.Sum(x => x.UnanimousYesAnswers.Count());
 
-            Assert.That(sum, Is.EqualTo(11));
+            Assert.That(part1, Is.EqualTo(6742));
+            Assert.That(part2, Is.EqualTo(3447));
         }
 
 

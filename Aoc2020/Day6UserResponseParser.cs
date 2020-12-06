@@ -42,9 +42,40 @@ namespace Aoc2020
     {
         public List<Questionnaire> UserResponses { get; } = new();
 
-        public IEnumerable<char> DistinctYesAnswers =>
+        public ISet<char> DistinctYesAnswers =>
             UserResponses.SelectMany(x => x.YesAnswers)
                 .ToHashSet();
+
+        public IEnumerable<char> UnanimousYesAnswers
+        {
+            get
+            {
+                var alpha = Enumerable.Range(0, 26)
+                    .Select(i => (char) (i + 97)).ToList();
+
+                var lettersEveryoneSaidYesTo = new List<char>();
+
+                foreach (var letter in alpha)
+                {
+                    var allLetters = new List<char>();
+                    foreach (var response in UserResponses)
+                    {
+                        allLetters.AddRange(response.YesAnswers);
+                    }
+
+                    var countOfLetter = allLetters.Count(x => x == letter);
+                    var everyoneSaidYes = countOfLetter == UserResponses.Count;
+
+                    if (everyoneSaidYes)
+                    {
+                        lettersEveryoneSaidYesTo.Add(letter);
+
+                    }
+                }
+
+                return lettersEveryoneSaidYesTo;
+            }
+        }
     }
 
     public class Questionnaire
