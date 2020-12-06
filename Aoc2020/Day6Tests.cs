@@ -16,8 +16,8 @@ namespace Aoc2020
             var result = Day6UserResponseParser.AnswersForGroups(data).ToList();
 
             Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result[0].ToList().DistinctYesAnswers().Count, Is.EqualTo(3));
-            Assert.That(result[1].ToList().DistinctYesAnswers().Count, Is.EqualTo(3));
+            Assert.That(result[0].ToList().YesAnswers().Count, Is.EqualTo(3));
+            Assert.That(result[1].ToList().YesAnswers().Count, Is.EqualTo(3));
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace Aoc2020
             var input = "abc\r\n\r\na\r\nb\r\nc\r\n\r\nab\r\nac\r\n\r\na\r\na\r\na\r\na\r\n\r\nb";
 
             var result = Day6UserResponseParser.AnswersForGroups(input);
-            var sum = result.Sum(x => x.ToList().DistinctYesAnswers().Count);
+            var sum = result.Sum(x => x.YesAnswers().Count);
 
             Assert.That(sum, Is.EqualTo(11));
         }
@@ -87,8 +87,9 @@ namespace Aoc2020
             var input = File.ReadAllText("Day6Input.txt");
 
             var result = Day6UserResponseParser.AnswersForGroups(input);
-            var part1 = result.Sum(x => x.ToList().DistinctYesAnswers().Count);
-            var part2 = result.Sum(x => x.ToList().UnanimousYesAnswers().Count());
+
+            var part1 = result.Sum(x => x.YesAnswers().Count);
+            var part2 = result.Sum(x => x.UnanimousYesAnswers().Count());
 
             Assert.That(part1, Is.EqualTo(6742));
             Assert.That(part2, Is.EqualTo(3447));
@@ -105,7 +106,7 @@ namespace Aoc2020
         {
             var sut = new List<List<char>>();
 
-            var distinctYeses = sut.DistinctYesAnswers().ToList();
+            var distinctYeses = sut.YesAnswers();
 
             Assert.That(distinctYeses, Is.Empty);
         }
@@ -113,10 +114,12 @@ namespace Aoc2020
         [Test]
         public void DistinctYesAnswers_SingleAAnsweredYes_AReturned()
         {
-            var sut = new List<List<char>>();
-            sut.Add(new List<char> { 'a'});
+            var sut = new List<List<char>>
+            {
+                new List<char> {'a'}
+            };
 
-            var distinctYeses = sut.DistinctYesAnswers();
+            var distinctYeses = sut.YesAnswers();
 
             Assert.That(distinctYeses.Count, Is.EqualTo(1));
         }
@@ -124,24 +127,28 @@ namespace Aoc2020
         [Test]
         public void DistinctYesAnswers_MultipleAAnsweredYes_AReturned()
         {
-            var sut = new List<List<char>>();
-            sut.Add(new List<char> {'a'});
-            sut.Add(new List<char> {'a'});
+            var sut = new List<List<char>>
+            {
+                new List<char> {'a'}, 
+                new List<char> {'a'}
+            };
 
-            var distinctYeses = sut.DistinctYesAnswers().ToList();
+            var distinctYeses = sut.YesAnswers();
 
             Assert.That(distinctYeses.Count, Is.EqualTo(1));
-            Assert.That(distinctYeses[0], Is.EqualTo('a'));
+            Assert.That(distinctYeses.First(), Is.EqualTo('a'));
         }
 
         [Test]
         public void DistinctYesAnswers_MultipleLettersAnsweredYes_AllReturnedReturned()
         {
-            var sut = new List<List<char>>();
-            sut.Add(new List<char> {'a'});
-            sut.Add(new List<char> {'b'});
+            var sut = new List<List<char>>
+            {
+                new List<char> {'a'}, 
+                new List<char> {'b'}
+            };
 
-            var distinctYeses = sut.DistinctYesAnswers().ToList();
+            var distinctYeses = sut.YesAnswers().ToList();
 
             Assert.That(distinctYeses.Count, Is.EqualTo(2));
             Assert.That(distinctYeses[0], Is.EqualTo('a'));
