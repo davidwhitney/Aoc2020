@@ -58,17 +58,10 @@ namespace Aoc2020
 
         public int CountCanContain(string target)
         {
-            var supports = 0;
-            foreach (var (key, _) in this)
-            {
-                var dependencies = AllRequirementsOf(key).Select(d => d.Target);
-                if (dependencies.Contains(target))
-                {
-                    supports++;
-                }
-            }
-
-            return supports;
+            return this
+                .Select(x => x.Key)
+                .Select(key=> AllRequirementsOf(key).Select(x => x.Target))
+                .Count(x => x.Contains(target));
         }
 
         public int SumContents(string target)
