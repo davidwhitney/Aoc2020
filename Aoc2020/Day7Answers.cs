@@ -83,17 +83,16 @@ namespace Aoc2020
             return total;
         }
 
-        public List<Requirement> AllRequirementsOf(string target, List<Requirement> all = null)
+        public List<Requirement> AllRequirementsOf(string target)
         {
-            all ??= new List<Requirement>();
-            all.AddRange(this[target]);
+            var requirements = new List<Requirement>(this[target]);
 
             foreach (var (key, _) in this[target])
             {
-                AllRequirementsOf(key, all);
+                requirements.AddRange(AllRequirementsOf(key));
             }
 
-            return all;
+            return requirements;
         }
     }
 
