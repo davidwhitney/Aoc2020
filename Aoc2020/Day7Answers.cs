@@ -80,7 +80,7 @@ namespace Aoc2020
         {
             var requirements = new List<Requirement>(this[target]);
 
-            foreach (var (key, _) in this[target])
+            foreach (var (key, minimum) in this[target])
             {
                 requirements.AddRange(AllRequirementsOf(key));
             }
