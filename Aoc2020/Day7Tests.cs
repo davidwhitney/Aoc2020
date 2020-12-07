@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 using System.IO;
 using NUnit.Framework;
 
@@ -83,8 +82,10 @@ namespace Aoc2020
         public void Example1()
         {
             var result = _examplePolicy.CountCanContain("shiny gold");
+            var totalBags = _examplePolicy.SumContents("shiny gold");
 
             Assert.That(result, Is.EqualTo(4));
+            Assert.That(totalBags, Is.EqualTo(32));
         }
 
         [Test]
@@ -94,12 +95,14 @@ namespace Aoc2020
             var policy = Day7Answers.Parse(inputs);
 
             var result = policy.CountCanContain("shiny gold");
+            var totalBags = policy.SumContents("shiny gold");
 
             Assert.That(result, Is.EqualTo(128));
+            Assert.That(totalBags, Is.EqualTo(20189));
         }
 
         [Test]
-        public void AllRequirementsOf()
+        public void AllRequirementsOf_ReturnsRecursiveSetOfRequirements()
         {
             var requirements = _examplePolicy.AllRequirementsOf("bright white");
 

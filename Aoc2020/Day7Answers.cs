@@ -71,6 +71,21 @@ namespace Aoc2020
             return supports;
         }
 
+        public int SumContents(string target)
+        {
+            var current = 0;
+            var requirements = this[target];
+
+            current += requirements.Sum(x => x.Minimum);
+
+            foreach (var (key, minimum) in requirements)
+            {
+                current += minimum * SumContents(key);
+            }
+
+            return current;
+        }
+
         public List<Requirement> AllRequirementsOf(string target, List<Requirement> all = null)
         {
             all ??= new List<Requirement>();
