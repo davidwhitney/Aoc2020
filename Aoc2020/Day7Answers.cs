@@ -73,29 +73,24 @@ namespace Aoc2020
 
         public int SumContents(string target)
         {
-            var current = 0;
-            var requirements = this[target];
+            var total = this[target].Sum(x => x.Minimum);
 
-            current += requirements.Sum(x => x.Minimum);
-
-            foreach (var (key, minimum) in requirements)
+            foreach (var (key, minimum) in this[target])
             {
-                current += minimum * SumContents(key);
+                total += minimum * SumContents(key);
             }
 
-            return current;
+            return total;
         }
 
         public List<Requirement> AllRequirementsOf(string target, List<Requirement> all = null)
         {
             all ??= new List<Requirement>();
+            all.AddRange(this[target]);
 
-            var requirements = this[target];
-            all.AddRange(requirements);
-
-            foreach (var requirement in requirements)
+            foreach (var (key, _) in this[target])
             {
-                AllRequirementsOf(requirement.Target, all);
+                AllRequirementsOf(key, all);
             }
 
             return all;
