@@ -70,8 +70,8 @@ namespace Aoc2020
 
                 var mutatedOpCode = newProgram[i] switch
                 {
-                    NopOpCode => new JmpOpCode(((NopOpCode)newProgram[i]).Value),
-                    JmpOpCode => new NopOpCode(((JmpOpCode)newProgram[i]).Value),
+                    NopOpCode => new JmpOpCode(newProgram[i].Value),
+                    JmpOpCode => new NopOpCode(newProgram[i].Value),
                     _ => newProgram[i]
                 };
 
