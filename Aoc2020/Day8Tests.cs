@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using NUnit.Framework;
 
 namespace Aoc2020
@@ -11,7 +11,7 @@ namespace Aoc2020
         [Test]
         public void Example()
         {
-            var program = new Compiler().Compile(new[]
+            var program = Compiler.Compile(new[]
             {
                 "nop +0", "acc +1", "jmp +4", "acc +3", "jmp -3", "acc -99", "acc +1", "jmp -4", "acc +6"
             });
@@ -19,7 +19,7 @@ namespace Aoc2020
             var sut = new Day8Vm();
             var result = sut.Execute(program);
 
-            Assert.That(result, Is.EqualTo(-1));
+            Assert.That(result, Is.EqualTo(ExitCode.StackOverflow));
             Assert.That(sut.Memory.Accumulator, Is.EqualTo(5));
         }
 
@@ -27,27 +27,76 @@ namespace Aoc2020
         public void Part1()
         {
             var texts = File.ReadAllLines("Day8.txt").Select(s => s.Trim());
-            var program = new Compiler().Compile(texts);
+            var program = Compiler.Compile(texts);
 
             var sut = new Day8Vm();
             var result = sut.Execute(program);
 
-            Assert.That(result, Is.EqualTo(-1));
+            Assert.That(result, Is.EqualTo(ExitCode.StackOverflow));
             Assert.That(sut.Memory.Accumulator, Is.EqualTo(1489));
+        }
+
+        [Test]
+        public void Example2()
+        {
+            var program = Compiler.Compile(new[]
+            {
+                "nop +0", "acc +1", "jmp +4", "acc +3", "jmp -3", "acc -99", "acc +1", "jmp -4", "acc +6"
+            });
+
+            var stateOnCleanExit = MutateUntilCleanExit(program);
+
+            Assert.That(stateOnCleanExit, Is.EqualTo(8));
+        }
+
+        [Test]
+        public void Part2()
+        {
+            var texts = File.ReadAllLines("Day8.txt").Select(s => s.Trim()).ToList();
+            var program = Compiler.Compile(texts);
+
+            var stateOnCleanExit = MutateUntilCleanExit(program);
+
+            Assert.That(stateOnCleanExit, Is.EqualTo(1539));
+        }
+
+        public int MutateUntilCleanExit(List<OpCode> program)
+        {
+            var stateOnCleanExit = 0;
+
+            for (var i = 0; i < program.Count; i++)
+            {
+                var newProgram = new List<OpCode>(program);
+
+                var mutatedOpCode = newProgram[i] switch
+                {
+                    NopOpCode => new JmpOpCode(((NopOpCode)newProgram[i]).Value),
+                    JmpOpCode => new NopOpCode(((JmpOpCode)newProgram[i]).Value),
+                    _ => newProgram[i]
+                };
+
+                newProgram[i] = mutatedOpCode;
+
+                var sut = new Day8Vm();
+                var result = sut.Execute(newProgram);
+
+                if (result == ExitCode.Success)
+                {
+                    stateOnCleanExit = sut.Memory.Accumulator;
+                }
+            }
+
+            return stateOnCleanExit;
         }
     }
 
     [TestFixture]
     public class CompilerTests
     {
-        private Compiler _sut;
-
-        [SetUp] public void SetUp() => _sut = new Compiler();
-
         [Test]
         public void Compile_AccPositive_ReturnsAccOpCode()
         {
-            var result = _sut.Compile("acc +1");
+            var result = Compiler.Compile("acc +1");
 
             Assert.That(result, Is.TypeOf<AccOpCode>());
             Assert.That(((AccOpCode)result).Value, Is.EqualTo(1));
@@ -56,7 +105,7 @@ namespace Aoc2020
         [Test]
         public void Compile_AccNegative_ReturnsAccOpCode()
         {
-            var result = _sut.Compile("acc -1");
+            var result = Compiler.Compile("acc -1");
 
             Assert.That(result, Is.TypeOf<AccOpCode>());
             Assert.That(((AccOpCode)result).Value, Is.EqualTo(-1));

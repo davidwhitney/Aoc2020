@@ -8,23 +8,23 @@ namespace Aoc2020
     {
         public MemoryState Memory { get; set; } = new();
         
-        public int Execute(IEnumerable<IOpCode> opCodes)
+        public ExitCode Execute(IEnumerable<OpCode> opCodes)
         {
             var programCounter = 0;
-            var program = new List<IOpCode>(opCodes);
-            var executed = new List<IOpCode>();
+            var program = new List<OpCode>(opCodes);
+            var executed = new List<OpCode>();
 
             while (true)
             {
                 if (programCounter >= program.Count)
                 {
-                    return 0;
+                    return ExitCode.Success;
                 }
 
                 var opCode = program[programCounter];
                 if (executed.Contains(opCode))
                 {
-                    return -1;
+                    return ExitCode.StackOverflow;
                 }
 
                 var movement = opCode.Execute(Memory);
@@ -35,77 +35,60 @@ namespace Aoc2020
         }
     }
 
-    public class Compiler
+    public static class Compiler
     {
-        public List<IOpCode> Compile(IEnumerable<string> opCode) 
+        public static List<OpCode> Compile(IEnumerable<string> opCode) 
             => opCode.Select(Compile).ToList();
 
-        public IOpCode Compile(string opCode)
-        {
-            if (opCode.StartsWith("acc"))
+        public static OpCode Compile(string opCode) =>
+            opCode.Split(" ").First() switch
             {
-                return AccOpCode.Parse(opCode);
-            }
-            if (opCode.StartsWith("jmp"))
-            {
-                return JmpOpCode.Parse(opCode);
-            }
-            if (opCode.StartsWith("nop"))
-            {
-                return NopOpCode.Parse(opCode);
-            }
-
-            throw new Exception("Invalid OpCode");
-        }
+                "acc" => new AccOpCode(opCode),
+                "jmp" => new JmpOpCode(opCode),
+                "nop" => new NopOpCode(opCode),
+                _ => throw new Exception("Invalid OpCode")
+            };
     }
 
-    public interface IOpCode
-    {
-        public OpCodeResult Execute(MemoryState memory);
-    }
-
-    public class OpCodeResult
-    {
-        public int Offset { get; }
-
-        public OpCodeResult(int offset)
-        {
-            Offset = offset;
-        }
-
-        public static OpCodeResult MoveNext() => new(1);
-        public static OpCodeResult Jump(int delta) => new(delta);
-    }
-
-    public class JmpOpCode : IOpCode
+    public abstract class OpCode
     {
         public int Value { get; set; }
-        public JmpOpCode(int value) => Value = value;
-        public static JmpOpCode Parse(string text) => new(int.Parse(text.Split(' ')[1]));
-
-        public OpCodeResult Execute(MemoryState memory)
-        {
-            return OpCodeResult.Jump(Value);
-        }
+        public abstract OpCodeResult Execute(MemoryState memory);
+        protected OpCode(int value) => Value = value;
     }
 
-    public class AccOpCode : IOpCode
+    public class JmpOpCode : OpCode
     {
-        public int Value { get; set; }
-        public AccOpCode(int value) => Value = value;
-        public static AccOpCode Parse(string text) => new(int.Parse(text.Split(' ')[1]));
+        public JmpOpCode(int value): base(value) { }
+        public JmpOpCode(string text): this(int.Parse(text.Split(' ')[1])) { }
+        public override OpCodeResult Execute(MemoryState memory) => OpCodeResult.Jump(Value);
+    }
 
-        public OpCodeResult Execute(MemoryState memory)
+    public class AccOpCode : OpCode
+    {
+        public AccOpCode(int value) : base(value) { }
+        public AccOpCode(string text) : this(int.Parse(text.Split(' ')[1])) { }
+
+        public override OpCodeResult Execute(MemoryState memory)
         {
             memory.Accumulator += Value;
             return OpCodeResult.MoveNext();
         }
     }
 
-    public class NopOpCode : IOpCode
+    public class NopOpCode : OpCode
     {
-        public static NopOpCode Parse(string text) => new();
-        public OpCodeResult Execute(MemoryState memory) => OpCodeResult.MoveNext();
+        public NopOpCode(int value = 0) : base(value) { }
+        public NopOpCode(string text) : this(int.Parse(text.Split(' ')[1])) { }
+        public override OpCodeResult Execute(MemoryState memory) => OpCodeResult.MoveNext();
+    }
+
+    public class OpCodeResult
+    {
+        public int Offset { get; }
+        public OpCodeResult(int offset) => Offset = offset;
+        public static OpCodeResult MoveNext() => new(1);
+        public static OpCodeResult Jump(int delta) => new(delta);
     }
 
     public class MemoryState :  Dictionary<string, int>
@@ -116,11 +99,12 @@ namespace Aoc2020
             set => this[nameof(Accumulator).ToLower()] = value;
         }
 
-        public MemoryState()
-        {
-            Accumulator = 0;
-        }
-
+        public MemoryState() => Accumulator = 0;
     }
 
+    public enum ExitCode
+    {
+        StackOverflow = -1,
+        Success = 0,
+    }
 }
